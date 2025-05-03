@@ -6,100 +6,94 @@
 /*   By: fcardozo <fcardozo@42.sp.br>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 17:03:18 by fcardozo          #+#    #+#             */
-/*   Updated: 2025/05/03 18:05:41 by fcardozo         ###   ########.fr       */
+/*   Updated: 2025/05/03 19:40:27 by fcardozo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-
-char *ft_readfile(char *filename)
-{
-  const int BUFF_SIZE = 2048; 
-  const int FILE = open(filename, O_RDONLY);
-  char *BUFFER = malloc(sizeof(char) * BUFF_SIZE);
-  
-  read(FILE, BUFFER, BUFF_SIZE);
-  return BUFFER; 
-}
-
+const int MAX_FILE_SIZE = 4096;
 const int MAX_LINES = 128;
 const int MAX_CHARACTERS = 256; 
 
-char **ft_linesbuffer(void)
+char *ft_readfile(char *filename)
 {
-  char **BUFF_LINES = (char **) malloc (sizeof(char *) * MAX_LINES);
+  int file;
+  char *f_buffer;
   
-  int bf_line = 0; 
-  while (bf_line < MAX_LINES)
-  {
-    BUFF_LINES[bf_line] = (char *) malloc (sizeof(char) * MAX_CHARACTERS); 
-    ++bf_line;
-  }
-  
-  return BUFF_LINES;
+  file = open(filename, O_RDONLY);
+  f_buffer = malloc(sizeof(char) * MAX_FILE_SIZE);
+  read(file, f_buffer, MAX_FILE_SIZE);
+  return f_buffer; 
 }
 
-void  ft_storeline(char **lines_bff, int line, char *start, char *end)
+char **ft_aloc_linesbuffer(void)
 {
-  int counter; 
-  
-  counter = 0; 
-  while ((start + counter) != end)
+  int c_line;
+  char **lines_buff;
+
+  c_line = 0; 
+  lines_buff = (char **) malloc (sizeof(char *) * MAX_LINES); 
+  while (c_line < MAX_LINES)
   {
-    lines_bff[line][counter] = *start;
-    ++counter;
-    ++start;
+    lines_buff[c_line] = (char *) malloc (sizeof(char) * MAX_CHARACTERS); 
+    ++c_line;
   }
-  lines_bff[line][counter] = '\0';
+  return lines_buff;
 }
 
-char **ft_splitlines(char *text_bff)
+void  ft_free_linesbuffer(char **lines_buff)
 {
-  char **lines_bff = ft_linesbuffer();
-  int bf_char = 0;
-  int l_character = 0; 
-  int *l_start = text_bff; 
-  
-  while (text_bff[l_character] != '\0')
+  int c_line; 
+
+  c_line = 0;
+  while (c_line < MAX_LINES)
   {
-    if (text_bff[l_character] = '\n')
+    free(lines_buff[c_line]);    
+    ++c_line;
+  }
+}
+
+char *ft_strcrop(char *buff, char *str, int c_start, int c_end)
+{
+  int i;
+  
+  i = 0; 
+  while (i + c_start < c_end)
+  {
+    buff[i] = str[i + c_start];
+    ++i; 
+  }
+  buff[i] = '\0';
+  return buff;
+}
+
+char **ft_splitlines(char *text_buff)
+{
+  int   line = 0;
+  int   lc_start = 0;
+  int   c_buff = 0;
+  char  **ls_buff = ft_aloc_linesbuffer(); 
+ 
+  while (text_buff[c_buff] != '\0')
+  {
+    if (text_buff[c_buff] == '\n')
     {
-      // ft_storeline(lines_bff, line, line_start, &text_bff[character]); 
-      
+      ft_strcrop(ls_buff[line], text_buff, lc_start, c_buff);       
+      lc_start = c_buff + 1;
+      ++line;
     }
-    character++;
-  }
-
-  printf("%d, %d, %s", line, character, line_start);
-  // printf("%p", lines_buffer[127]);
-
-  // int c_character = 0;
-  // int c_line = 0; 
-  
-  // // "Ola, estou te programando\n Outra linha."
-
-
-  // while (buffer[c_character] != '\0')
-  // {
-  //   if (buffer[c_character] == '\n')
-  //     c_line++; 
-  //   c_character++;
-  // }
-
-  // printf("%d", c_line);
-  
+    ++c_buff;
+  } 
+  free(text_buff); 
+  return ls_buff; 
 }
 
-void  main(void)
+char **ft_gdictionary(char *filename)
 {
- char *dictionary = ft_readfile("numbers.dict"); 
- char **f_lines = ft_splitlines(dictionary); 
-//  printf("%s", dictionary);
- // limpando a memoria 
- free(dictionary);
+  char *dictionary = ft_readfile(filename); 
+  char **f_lines = ft_splitlines(dictionary); 
+  return f_lines;
 }
-
